@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Demo</title>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/jquery-1.11.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/jquery-editable/css/jquery-editable.css" rel="stylesheet"/>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/jquery-editable/js/jquery-editable-poshytip.min.js"></script>
+    <script type='text/javascript' src='http://www.dyve.net/jquery/js/jquery.editable.js'></script>
+	<style>
+	
+	table {
+        width: 100%;
+		border: 1px solid #999;
+	}
+	
+	td, tr {
+    	border: 1px solid #999;
+		padding: 0.1em 0.1em;
+        position:relative;
+	}
+	
+    .playerTitle {
+        height: 25%;
+        width: 100%;        
+        text-align: center;
+        vertical-align: center;
+        font-weight: bold;       
+        font-size: 7vh;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+    }
+    
+    .playerScore {
+        width: 100%;
+        height: 25%;
+        text-align: center;
+        vertical-align: center;
+        font-weight: bold;       
+        font-size: 7h;
+        position: absolute;
+        top:28%;
+        left:0;
+        z-index: 1;
+    }
+    .playerButton {
+        border: 1px solid #999;
+		text-align: center;
+        vertical-align: center;
+        font-weight: bold;       
+        font-size: 7h;
+        width: 20%;
+        height: 25%;
+        top: 75%;
+        position: absolute;
+        
+    }
+	</style>
+</head>
+<body>
+  <script>
+  var playerScores = [];
+  
+  function addAmountToScoreForPlayer(playerIndex, amt) {
+    playerScores[playerIndex] += amt
+    console.log('Adding ' + amt + ' to score for Player ' + playerIndex + ' to get the score ' + playerScores[playerIndex])
+    $('#Player' + playerIndex + 'Score').text(playerScores[playerIndex])
+  }
+  function addAmountToScoreForPlayerEventHandler(event) {
+    playerScores[event.data.playerIndex] += event.data.amt
+    console.log('Adding ' + event.data.amt + ' to score for Player ' + event.data.playerIndex + ' to get the score ' + playerScores[event.data.playerIndex])
+    $('#Player' + event.data.playerIndex + 'Score').text(playerScores[event.data.playerIndex])
+  }
+  $(function() {
+    var spinner = $( "#spinner" ).spinner({
+      max: 8, 
+      min: 1
+    });
+    
+    
+    $( "#clearGameBttn" ).click(function() {
+         $("#playTable").find("tr").remove();
+    })
+    
+    $( "#startGameBttn" ).click(function() {
+        
+        $.fn.editable.defaults.mode = 'inline';
+        
+        numPlayers = spinner.spinner( "value" )
+        var w = window, d = document, e = d.documentElement, g = d.getElementsByTagName('body')[0]        
+        var x = w.innerWidth || e.clientWidth || g.clientWidth
+        var y = w.innerHeight || e.clientHeight || g.clientHeight;
+        var playTbl = $('#playTable')
+
+        for (var i = 1; i <= numPlayers; i++) {
+           playerScores.push(0);
+}
+        var playHeight = (y - playTbl.position().top ) *0.9
+        console.log(' play height available: ' + playHeight + ' and Y: ' + y + ' and playTbl.position().top: ' + playTbl.position().top)
+        if (numPlayers == 1) {
+            var numCols = 1
+        } else {
+            var numCols = 2
+        }
+        var numRows = Math.ceil(numPlayers / numCols)
+        console.log( 'Start Game with ' + numPlayers + ' players with ' + numRows + ' Rows and ' + numCols  + ' Columns!');
+        var backgroundColours = ['blue', 'gray', 'green', 'maroon', 'navy', 'olive', 'orange', 'purple', 'red', 'silver', 'teal', 'white', 'yellow']
+        for (var playerI = 0; playerI < numPlayers; playerI++) {
+            var playerRow = Math.floor(playerI / numCols)
+            var playerCol = playerI % 2
+            console.log('Creating items for player ' + playerI + ' in Row ' + playerRow + ' in Column ' + playerCol)
+       
+            if (playerCol == 0) {
+                var thisRow = $('<tr />').attr({ 'id': 'Player' + playerRow + 'Row'})
+                thisRow.appendTo('#playTable')
+                
+            } else {
+                var thisRow = $('#Player' + playerRow + 'Row')
+            }
+            var thisCol = $('<td />').attr({ 'id': 'Player' + playerI + 'Area'})
+            thisCol.css('background-color', backgroundColours[playerI])
+            thisCol.css('height', playHeight/numRows + 'px')
+            thisCol.css('width', 100/numCols + '%')
+            thisCol.appendTo('#Player' + playerRow + 'Row')
+//            var  span = $('<span />').attr({ 'class': 'edit_inline', 'id': 'Player' + playerI + 'Title'}).html('Player ' + playerI)
+            //span.css('left', (thisCol.css('width') - span.css('width'))/2 + 'px')
+            var span = $('<a />').attr({'href':"", 'id':'Player' + playerI + 'Title', 'data-type':"text", 'data-pk':"1", 'data-url':"/post", 'data-title':"Enter name", 'value':'Player ' + playerI})            
+            span.appendTo('#Player' + playerI + 'Area');
+            span.editable();
+            span = $('<span />').attr({ 'class': 'playerScore', 'id': 'Player' + playerI + 'Score'}).text(playerScores[playerI])
+            span.appendTo('#Player' + playerI + 'Area');
+            span = $('<div />').attr({ 'class': 'playerButton', 'id': 'Player' + playerI + 'Add1'}).text('+1')
+            span.appendTo('#Player' + playerI + 'Area');
+            span.css('left', '0%')
+            $( '#Player' + playerI + 'Area' ).on( "click", '#Player' + playerI + 'Add1', { playerIndex: playerI, amt: 1 }, addAmountToScoreForPlayerEventHandler );            
+            span = $('<div />').attr({ 'class': 'playerButton', 'id': 'Player' + playerI + 'Add2'}).text('+2')
+            span.appendTo('#Player' + playerI + 'Area');
+            span.css('left', '33%')
+            $( '#Player' + playerI + 'Area' ).on( "click", '#Player' + playerI + 'Add2', { playerIndex: playerI, amt: 2 }, addAmountToScoreForPlayerEventHandler );            
+    
+            span = $('<div />').attr({ 'class': 'playerButton', 'id': 'Player' + playerI + 'Add3'}).text('+3')
+            span.appendTo('#Player' + playerI + 'Area');
+            span.css('left', '67%')
+            $( '#Player' + playerI + 'Area' ).on( "click", '#Player' + playerI + 'Add3', { playerIndex: playerI, amt: 3 }, addAmountToScoreForPlayerEventHandler );            
+
+            $('#Player' + playerI + 'Area' ).on('click','#Player' + playerI + 'Title', { playerIndex: playerI }, function(event){
+                console.log('Changing Title for player ' + event.data.playerIndex)
+            });    
+        }
+    });
+
+    $( "button" ).button();
+  });
+  </script>    
+<p>
+  <label for="spinner">Number of Players:</label>
+  <input id="spinner" name="value" value='1'/>
+  <button id="startGameBttn">Start Game</button>
+  <button id="clearGameBttn">Clear</button>
+</p>
+<!--
+<div id="playArea" width=100%>
+</div> 
+-->
+<table id='playTable' >
+</table>
+</body>
+</html>
